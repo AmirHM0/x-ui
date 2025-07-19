@@ -1,22 +1,14 @@
-FROM debian:11-slim AS builder
+FROM ubuntu:22.04
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential golang git ca-certificates && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+WORKDIR /x-ui
 
-WORKDIR /root
-COPY . .
-RUN go build -o x-ui main.go
+RUN apt-get update && \
+    apt-get install -y curl unzip ca-certificates && \
+    curl -L -o x-ui-linux-amd64.zip https://github.com/vaxilu/x-ui/releases/latest/download/x-ui-linux-amd64.zip && \
+    unzip x-ui-linux-amd64.zip && \
+    rm x-ui-linux-amd64.zip && \
+    chmod +x x-ui
 
-FROM debian:11-slim
-
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-WORKDIR /root
-COPY --from=builder /root/x-ui /root/x-ui
-
-VOLUME [ "/etc/x-ui" ]
-EXPOSE 54321 443 80
+EXPOSE 54321 443
 
 CMD ["./x-ui"]
